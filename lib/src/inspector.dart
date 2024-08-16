@@ -80,6 +80,8 @@ class Inspector extends StatefulWidget {
   final List<LogicalKeyboardKey> zoomShortcuts;
   final bool? isEnabled;
 
+  static double textScale = 1.0;
+
   static InspectorState of(BuildContext context) {
     final InspectorState? result = maybeOf(context);
     if (result != null) {

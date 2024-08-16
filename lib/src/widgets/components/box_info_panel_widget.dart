@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:inspector/src/inspector.dart';
 import 'package:inspector/src/widgets/color_picker/utils.dart';
 import 'package:inspector/src/widgets/inspector/box_info.dart';
 
@@ -80,7 +81,7 @@ class BoxInfoPanelWidget extends StatelessWidget {
           icon: Icons.format_shapes,
           subtitle: 'size',
           child: Text(
-            '${boxInfo.targetRect.width} × ${boxInfo.targetRect.height}',
+            '${boxInfo.targetRect.width.toStringAsFixed(1)} × ${boxInfo.targetRect.height.toStringAsFixed(1)}',
           ),
           backgroundColor: theme.chipTheme.backgroundColor,
         ),
@@ -112,14 +113,17 @@ class BoxInfoPanelWidget extends StatelessWidget {
           icon: Icons.rounded_corner,
           subtitle: 'border radius',
           backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(decoration.borderRadius.toString()),
+          child: Text(decoration.borderRadius
+                  ?.toString()
+                  .replaceAll('BorderRadius.', '') ??
+              'n/a'),
         ),
         _buildInfoRow(
           context,
           icon: Icons.circle_outlined,
           subtitle: 'shape',
           backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(decoration.shape.toString()),
+          child: Text(decoration.shape.toString().replaceAll('BoxShape.', '')),
         ),
         _buildInfoRow(
           context,
@@ -146,6 +150,9 @@ class BoxInfoPanelWidget extends StatelessWidget {
 
     if (style == null) return const SizedBox.shrink();
 
+    final fontSize = (style.fontSize ?? 0.0) / Inspector.textScale;
+    final lineHeight = fontSize * (style.height ?? 1);
+
     return Wrap(
       spacing: 12.0,
       runSpacing: 8.0,
@@ -155,21 +162,48 @@ class BoxInfoPanelWidget extends StatelessWidget {
           icon: Icons.font_download,
           subtitle: 'font family',
           backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(style.fontFamily ?? 'n/a'),
+          child: Text(
+              style.fontFamily?.replaceAll('packages/design_system/', '') ??
+                  'n/a'),
         ),
         _buildInfoRow(
           context,
           icon: Icons.format_size,
           subtitle: 'font size',
           backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(style.fontSize?.toStringAsFixed(1) ?? 'n/a'),
+          child: Text(fontSize.toStringAsFixed(2)),
+        ),
+        _buildInfoRow(
+          context,
+          icon: Icons.format_size,
+          subtitle: 'scaled font size',
+          backgroundColor: theme.chipTheme.backgroundColor,
+          child: Text(style.fontSize?.toStringAsFixed(2) ?? 'n/a'),
+        ),
+        _buildInfoRow(
+          context,
+          icon: Icons.height,
+          subtitle: 'line height',
+          backgroundColor: theme.chipTheme.backgroundColor,
+          child: Text(lineHeight.toStringAsFixed(1)),
+        ),
+        _buildInfoRow(
+          context,
+          icon: Icons.line_weight,
+          subtitle: 'font weight',
+          backgroundColor: theme.chipTheme.backgroundColor,
+          child: Text(
+              style.fontWeight?.toString().replaceAll('FontWeight.', '') ??
+                  'n/a'),
         ),
         _buildInfoRow(
           context,
           icon: Icons.text_format,
           subtitle: 'decoration',
           backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(style.decoration?.toString() ?? 'n/a'),
+          child: Text(
+              style.decoration?.toString().replaceAll('TextDecoration.', '') ??
+                  'n/a'),
         ),
         _buildInfoRow(
           context,
@@ -185,20 +219,6 @@ class BoxInfoPanelWidget extends StatelessWidget {
               color: style.color,
             ),
           ),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.height,
-          subtitle: 'height',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(style.height?.toStringAsFixed(1) ?? 'n/a'),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.line_weight,
-          subtitle: 'weight',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(style.fontWeight?.toString() ?? 'n/a'),
         ),
       ],
     );

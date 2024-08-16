@@ -7,7 +7,7 @@ class InspectorUtils {
     if (box is RenderViewport) return box;
 
     if (box.parent != null && box.parent is RenderObject) {
-      return findAncestorViewport(box.parent! as RenderObject);
+      return findAncestorViewport(box.parent!);
     }
 
     return null;
