@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -85,13 +84,14 @@ class BoxInfoPanelWidget extends StatelessWidget {
           ),
           backgroundColor: theme.chipTheme.backgroundColor,
         ),
-        _buildInfoRow(
-          context,
-          icon: Icons.straighten,
-          subtitle: 'padding (LTRB)',
-          child: Text(boxInfo.describePadding()),
-          backgroundColor: theme.chipTheme.backgroundColor,
-        ),
+        // Remove padding as it shows calculated values instead of the actual padding, which confuses the designers
+        // _buildInfoRow(
+        //   context,
+        //   icon: Icons.straighten,
+        //   subtitle: 'padding (LTRB)',
+        //   child: Text(boxInfo.describePadding()),
+        //   backgroundColor: theme.chipTheme.backgroundColor,
+        // ),
       ],
     );
   }
@@ -239,7 +239,7 @@ class BoxInfoPanelWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    describeIdentity(boxInfo.targetRenderBox),
+                    'Element Properties',
                     style: theme.textTheme.bodySmall,
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+
 import '../inspector/box_info.dart';
 
 class OverlayPainter extends CustomPainter {
@@ -23,21 +24,22 @@ class OverlayPainter extends CustomPainter {
       targetRectPaint,
     );
 
-    if (boxInfo.containerRect != null) {
-      final paddingRects = [
-        boxInfo.paddingRectLeft,
-        boxInfo.paddingRectTop,
-        boxInfo.paddingRectRight,
-        boxInfo.paddingRectBottom,
-      ];
+    // Do not paint container rect as it's confusing to the designers
+    // if (boxInfo.containerRect != null) {
+    //   final paddingRects = [
+    //     boxInfo.paddingRectLeft,
+    //     boxInfo.paddingRectTop,
+    //     boxInfo.paddingRectRight,
+    //     boxInfo.paddingRectBottom,
+    //   ];
 
-      for (final rect in paddingRects) {
-        canvas.drawRect(
-          rect!.shift(-boxInfo.overlayOffset),
-          containerRectPaint,
-        );
-      }
-    }
+    //   for (final rect in paddingRects) {
+    //     canvas.drawRect(
+    //       rect!.shift(-boxInfo.overlayOffset),
+    //       containerRectPaint,
+    //     );
+    //   }
+    // }
   }
 
   @override
