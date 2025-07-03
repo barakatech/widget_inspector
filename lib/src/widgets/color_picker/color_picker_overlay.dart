@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 
+import 'color_scheme_inspector.dart';
 import 'utils.dart';
 
 class ColorPickerOverlay extends StatelessWidget {
   const ColorPickerOverlay({
     Key? key,
     required this.color,
+    required this.isColorSchemeHintEnabled,
   }) : super(key: key);
 
   final Color color;
+  final bool isColorSchemeHintEnabled;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final String? match;
+
+    if (isColorSchemeHintEnabled) {
+      match = ColorSchemeInspector.identifyColorSchemeMatch(color, colorScheme);
+    } else {
+      match = null;
+    }
+
+    final colorString = colorToHexString(color);
     return Container(
-      width: 56.0,
-      height: 56.0,
+      width: 102.0,
+      height: 102.0,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4.0),
@@ -30,7 +43,7 @@ class ColorPickerOverlay extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: Text(
-          colorToHexString(color),
+          match != null ? '$colorString $match' : colorString,
           style: TextStyle(
             color: getTextColorOnBackground(color),
             fontSize: 12.0,
