@@ -9,17 +9,11 @@ class BoxInfoPanelWidget extends StatelessWidget {
   const BoxInfoPanelWidget({
     Key? key,
     required this.boxInfo,
-    required this.targetColor,
-    required this.containerColor,
-    required this.onVisibilityChanged,
-    this.isVisible = true,
+    this.comparedBoxInfo,
   }) : super(key: key);
 
-  final bool isVisible;
-  final ValueChanged<bool> onVisibilityChanged;
   final BoxInfo boxInfo;
-  final Color targetColor;
-  final Color containerColor;
+  final BoxInfo? comparedBoxInfo;
 
   Widget _buildInfoRow(
     BuildContext context, {
@@ -85,13 +79,64 @@ class BoxInfoPanelWidget extends StatelessWidget {
           backgroundColor: theme.chipTheme.backgroundColor,
         ),
         // Remove padding as it shows calculated values instead of the actual padding, which confuses the designers
-        // _buildInfoRow(
-        //   context,
-        //   icon: Icons.straighten,
-        //   subtitle: 'padding (LTRB)',
-        //   child: Text(boxInfo.describePadding()),
-        //   backgroundColor: theme.chipTheme.backgroundColor,
-        // ),
+        // if (boxInfo.containerRect != null)
+        //   _buildInfoRow(
+        //     context,
+        //     icon: Icons.straighten,
+        //     subtitle: 'padding (LTRB)',
+        //     child: Text(boxInfo.describePadding()),
+        //     backgroundColor: theme.chipTheme.backgroundColor,
+        //   ),
+      ],
+    );
+  }
+
+  Widget _buildComparedRow(BuildContext context) {
+    final theme = Theme.of(context);
+    final from = boxInfo.targetRect;
+    final to = comparedBoxInfo!.targetRect;
+
+    double left = 0, right = 0, top = 0, bottom = 0;
+
+    // Horizontal distances
+    if (from.right <= to.left) {
+      // from is left of to
+      right = to.left - from.right;
+    } else if (to.right <= from.left) {
+      // from is right of to
+      left = from.left - to.right;
+    } else {
+      // They overlap horizontally
+      left = (from.left - to.left).abs();
+      right = (from.right - to.right).abs();
+    }
+
+    // Vertical distances
+    if (from.bottom <= to.top) {
+      // from is above to
+      bottom = to.top - from.bottom;
+    } else if (to.bottom <= from.top) {
+      // from is below to
+      top = from.top - to.bottom;
+    } else {
+      // They overlap vertically
+      top = (from.top - to.top).abs();
+      bottom = (from.bottom - to.bottom).abs();
+    }
+
+    return Wrap(
+      spacing: 12.0,
+      runSpacing: 8.0,
+      children: [
+        _buildInfoRow(
+          context,
+          icon: Icons.open_with,
+          subtitle: 'Distances (LTRB)',
+          child: Text(
+            '${left.toStringAsFixed(1)}, ${top.toStringAsFixed(1)}, ${right.toStringAsFixed(1)}, ${bottom.toStringAsFixed(1)}',
+          ),
+          backgroundColor: theme.chipTheme.backgroundColor,
+        ),
       ],
     );
   }
@@ -130,97 +175,130 @@ class BoxInfoPanelWidget extends StatelessWidget {
           icon: Icons.palette,
           subtitle: 'color',
           backgroundColor: theme.chipTheme.backgroundColor,
-          iconColor: decoration.color,
           child: Text(
             decoration.color != null
                 ? '#${colorToHexString(decoration.color!, withAlpha: true)}'
                 : 'n/a',
-            style: TextStyle(color: decoration.color),
           ),
         ),
       ],
     );
   }
 
+  List<TextStyle> _extractTextStyles(
+    InlineSpan span, [
+    List<TextStyle>? styles,
+  ]) {
+    styles ??= [];
+
+    if (span.style != null) {
+      styles.add(span.style!);
+    }
+
+    if (span is TextSpan && span.children != null) {
+      for (final child in span.children!) {
+        _extractTextStyles(child, styles);
+      }
+    }
+
+    return styles;
+  }
+
   Widget _buildRenderParagraphInfo(BuildContext context) {
     final theme = Theme.of(context);
     final _renderParagraph = boxInfo.targetRenderBox as RenderParagraph;
 
-    final style = _renderParagraph.text.style;
+    final styles = _extractTextStyles(_renderParagraph.text);
 
-    if (style == null) return const SizedBox.shrink();
+    if (styles.isEmpty) return const SizedBox.shrink();
 
-    final fontSize = (style.fontSize ?? 0.0) / Inspector.textScale;
-    final lineHeight = fontSize * (style.height ?? 1);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 4,
+      children: styles
+          .map(
+            (style) {
+              final fontSize = (style.fontSize ?? 0.0) / Inspector.textScale;
 
-    return Wrap(
-      spacing: 12.0,
-      runSpacing: 8.0,
-      children: [
-        _buildInfoRow(
-          context,
-          icon: Icons.font_download,
-          subtitle: 'font family',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(
-              style.fontFamily?.replaceAll('packages/design_system/', '') ??
-                  'n/a'),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.format_size,
-          subtitle: 'font size',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(fontSize.toStringAsFixed(2)),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.format_size,
-          subtitle: 'scaled font size',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(style.fontSize?.toStringAsFixed(2) ?? 'n/a'),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.height,
-          subtitle: 'line height',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(lineHeight.toStringAsFixed(1)),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.line_weight,
-          subtitle: 'font weight',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(
-              style.fontWeight?.toString().replaceAll('FontWeight.', '') ??
-                  'n/a'),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.text_format,
-          subtitle: 'decoration',
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(
-              style.decoration?.toString().replaceAll('TextDecoration.', '') ??
-                  'n/a'),
-        ),
-        _buildInfoRow(
-          context,
-          icon: Icons.color_lens,
-          subtitle: 'color',
-          iconColor: style.color,
-          backgroundColor: theme.chipTheme.backgroundColor,
-          child: Text(
-            _renderParagraph.text.style?.color != null
-                ? '#${colorToHexString(style.color!, withAlpha: true)}'
-                : 'n/a',
-            style: TextStyle(
-              color: style.color,
-            ),
-          ),
-        ),
-      ],
+              return Wrap(
+                spacing: 12.0,
+                runSpacing: 8.0,
+                children: [
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.font_download,
+                    subtitle: 'font family',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(
+                        style.fontFamily?.replaceAll('packages/design_system/', '') ??
+                            'n/a'),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.format_size,
+                    subtitle: 'font size',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(fontSize.toStringAsFixed(2)),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.format_size,
+                    subtitle: 'scaled font size',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(style.fontSize?.toStringAsFixed(2) ?? 'n/a'),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.text_format,
+                    subtitle: 'decoration',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(
+                        style.decoration?.toString().replaceAll('TextDecoration.', '') ??
+                            'n/a'),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.color_lens,
+                    subtitle: 'color',
+                    iconColor: style.color,
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(
+                      style.color != null
+                          ? '#${colorToHexString(style.color!, withAlpha: true)}'
+                          : 'n/a',
+                      style: TextStyle(
+                        color: style.color,
+                      ),
+                    ),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.height,
+                    subtitle: 'line height',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(style.height?.toStringAsFixed(1) ?? 'n/a'),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.horizontal_distribute,
+                    subtitle: 'Letter Spacing',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(style.letterSpacing?.toStringAsFixed(1) ?? 'n/a'),
+                  ),
+                  _buildInfoRow(
+                    context,
+                    icon: Icons.line_weight,
+                    subtitle: 'font weight',
+                    backgroundColor: theme.chipTheme.backgroundColor,
+                    child: Text(
+                        style.fontWeight?.toString().replaceAll('FontWeight.', '') ??
+                            'n/a'),
+                  ),
+                ],
+              );
+            },
+          )
+          .toList(),
     );
   }
 
@@ -265,8 +343,14 @@ class BoxInfoPanelWidget extends StatelessWidget {
             children: [
               // const SizedBox(height: 4.0),
               // _buildSizeRow(context),
-              if (boxInfo.containerRect != null) ...[
-                _buildMainRow(context),
+              _buildMainRow(context),
+              if (boxInfo.targetRenderBox.attached == true &&
+                  comparedBoxInfo?.targetRenderBox.attached == true) ...[
+                Divider(
+                  height: 16.0,
+                  color: theme.dividerColor,
+                ),
+                _buildComparedRow(context),
               ],
               if (boxInfo.targetRenderBox is RenderParagraph) ...[
                 Divider(

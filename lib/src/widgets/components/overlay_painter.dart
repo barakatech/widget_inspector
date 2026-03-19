@@ -7,14 +7,16 @@ class OverlayPainter extends CustomPainter {
     required this.boxInfo,
     required this.targetRectColor,
     required this.containerRectColor,
+    this.showContainerRenderBox = true,
   });
 
   final BoxInfo boxInfo;
-
   final Color targetRectColor;
   final Color containerRectColor;
+  final bool showContainerRenderBox;
 
   Paint get targetRectPaint => Paint()..color = targetRectColor;
+
   Paint get containerRectPaint => Paint()..color = containerRectColor;
 
   @override
@@ -25,7 +27,7 @@ class OverlayPainter extends CustomPainter {
     );
 
     // Do not paint container rect as it's confusing to the designers
-    // if (boxInfo.containerRect != null) {
+    // if (showContainerRenderBox && boxInfo.containerRect != null) {
     //   final paddingRects = [
     //     boxInfo.paddingRectLeft,
     //     boxInfo.paddingRectTop,
